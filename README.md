@@ -21,6 +21,5 @@
 
 ## Запуск
 в баше
-javac *.java
-
+javac *.java; 
 java GraphGUI

@@ -22,4 +22,5 @@
 ## Запуск
 в баше
 javac *.java
+
 java GraphGUI

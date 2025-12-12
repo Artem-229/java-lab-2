@@ -1,15 +1,411 @@
 import java.util.*;
 
+class MyArrayList<V> {
+    private Object[] elements; 
+
+    private int size;
+
+    private static final int DEFAULT_CAPACITY = 10;
+
+    public MyArrayList() {
+        elements = new Object[DEFAULT_CAPACITY];
+        size = 0;
+    }
+
+    public MyArrayList(int initialCapacity) {
+        if (initialCapacity <= 0) {
+            throw new IllegalArgumentException("Емкость должна быть больше 0");
+        }
+        elements = new Object[initialCapacity];
+        size = 0;
+    }
+
+    public void add(V element) {
+        if (size == elements.length) {
+            resize();
+        }
+        elements[size] = element;
+
+        size++;
+    }
+
+    public V get(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Индекс" + index + ", размер " + size);
+        }
+        return (V) elements[index];
+    }
+
+    public int size() {
+        return size;
+    }
+
+    private void resize() {
+        int newCapacity = elements.length*2;
+        Object[] newArray = new Object[newCapacity];
+
+        for (int i = 0; i < size; i++) {
+            newArray[i] = elements[i];
+        }
+
+        elements = newArray;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    public boolean contains(V element) {
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == null) {
+                if (element == null) return true; 
+            } else if (elements[i].equals(element)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int indexOf(V element) {
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == null) {
+                if (element == null) {
+                    return i;
+                }
+            } else if (elements[i].equals(element)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void remove(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Такого элекмента не существует");
+        }
+
+        for (int i = index; i < size; i++) {
+            elements[i] = elements[i+1];
+        }
+        elements[size - 1] = null;
+        size--;
+    }
+
+    public void set(int index, V element) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Такого элемента не существует");
+           
+        }
+        elements[index] = element;
+    }
+
+    public String toString() {
+        if (size == 0) return "[]";
+
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < size; i++) {
+            sb.append(elements[i]);
+            if (i < size - 1) {
+                sb.append(", ");
+            }
+        }
+
+        sb.append("]");
+        return sb.toString();
+    }
+    
+    public void clear() {
+    for (int i = 0; i < size; i++) {
+        elements[i] = null;
+    }
+    size = 0;
+    }
+}
+
+class MyHashMap<K, V> {
+    public static class Entry<K, V> {
+        public K key;
+        public V value;
+        Entry<K, V> next;
+        
+        Entry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+    
+    private Entry<K, V>[] table;
+    private int size;
+    private static final int DEFAULT_CAPACITY = 16;
+    
+    public MyHashMap() {
+        table = new Entry[DEFAULT_CAPACITY];
+        size = 0;
+    }
+
+    public MyArrayList<Entry<K, V>> entrySet() {
+        MyArrayList<Entry<K, V>> entries = new MyArrayList<>();
+        for (int i = 0; i < table.length; i++) {
+            Entry<K, V> current = table[i];
+            while (current != null) {
+                entries.add(current);
+                current = current.next;
+            }
+        }
+        return entries;
+    }
+    
+    public MyArrayList<V> values() {
+        MyArrayList<V> values = new MyArrayList<>();
+        for (int i = 0; i < table.length; i++) {
+            Entry<K, V> current = table[i];
+            while (current != null) {
+                values.add(current.value);
+                current = current.next;
+            }
+        }
+        return values;
+    }
+
+    private int hash(K key) {
+        if (key == null) return 0;
+        return Math.abs(key.hashCode()) % table.length;
+    }
+    public V put(K key, V value) {
+        int index = hash(key);
+        
+        Entry<K, V> current = table[index];
+        while (current != null) {
+            if ((key == null && current.key == null) || 
+                (key != null && key.equals(current.key))) {
+                V oldValue = current.value;
+                current.value = value;
+                return oldValue;
+            }
+            current = current.next;
+        }
+        
+        Entry<K, V> newEntry = new Entry<>(key, value);
+        newEntry.next = table[index];
+        table[index] = newEntry;
+        size++;
+        
+        return null;
+    }
+
+    public V get(K key) {
+        int index = hash(key);
+        Entry<K, V> current = table[index];
+        
+        while (current != null) {
+            if ((key == null && current.key == null) || 
+                (key != null && key.equals(current.key))) {
+                return current.value;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+
+    public boolean containsKey(K key) {
+        int index = hash(key);
+        Entry<K, V> current = table[index];
+        
+        while (current != null) {
+            if ((key == null && current.key == null) || 
+                (key != null && key.equals(current.key))) {
+                return true;
+            }
+            current = current.next;
+        }
+        return false;
+    }
+
+    public V remove(K key) {
+        int index = hash(key);
+        Entry<K, V> current = table[index];
+        Entry<K, V> previous = null;
+        
+        while (current != null) {
+            if ((key == null && current.key == null) || 
+                (key != null && key.equals(current.key))) {
+                if (previous == null) {
+                    table[index] = current.next;
+                } else {
+                    previous.next = current.next;
+                }
+                size--;
+                return current.value;
+            }
+            previous = current;
+            current = current.next;
+        }
+        return null;
+    }
+
+    public MyArrayList<K> keySet() {
+        MyArrayList<K> keys = new MyArrayList<>();
+        
+        for (int i = 0; i < table.length; i++) {
+            Entry<K, V> current = table[i];
+            while (current != null) {
+                keys.add(current.key);
+                current = current.next;
+            }
+        }
+        return keys;
+    }
+
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
+    }
+    
+}
+
+class MyStack<V> {
+    private Object[] elements;
+    private int top;
+    private static final int DEFAULT_CAPACITY = 10;
+    
+    public MyStack() {
+        elements = new Object[DEFAULT_CAPACITY];
+        top = -1;
+    }
+    
+    public void push(V element) {
+        if (top == elements.length - 1) {
+            Object[] newArray = new Object[elements.length * 2];
+            for (int i = 0; i <= top; i++) {
+                newArray[i] = elements[i];
+            }
+            elements = newArray;
+        }
+        elements[++top] = element;
+    }
+    
+    public V pop() {
+        if (isEmpty()) {
+            throw new RuntimeException("Стек пуст");
+        }
+        V element = (V) elements[top];
+        elements[top] = null;
+        top--;
+        return element;
+    }
+    
+    public boolean isEmpty() {
+        return top == -1;
+    }
+    
+    public V peek() {
+        if (isEmpty()) {
+            throw new RuntimeException("Стек пуст");
+        }
+        return (V) elements[top];
+    }
+}
+
+class MyQueue<V> {
+    private Object[] elements;
+    private int front;
+    private int rear;
+    private int size;
+    private static final int DEFAULT_CAPACITY = 10;
+    
+    public MyQueue() {
+        elements = new Object[DEFAULT_CAPACITY];
+        front = 0;
+        rear = -1;
+        size = 0;
+    }
+    
+    public void offer(V element) {
+        if (size == elements.length) {
+            resize();
+        }
+        rear = (rear + 1) % elements.length;
+        elements[rear] = element;
+        size++;
+    }
+    
+    public V poll() {
+        if (isEmpty()) {
+            throw new RuntimeException("Очередь пуста");
+        }
+        V element = (V) elements[front];
+        elements[front] = null;
+        front = (front + 1) % elements.length;
+        size--;
+        return element;
+    }
+    
+    public boolean isEmpty() {
+        return size == 0;
+    }
+    
+    public V peek() {
+        if (isEmpty()) {
+            throw new RuntimeException("Очередь пуста");
+        }
+        return (V) elements[front];
+    }
+    
+    private void resize() {
+        Object[] newArray = new Object[elements.length * 2];
+        for (int i = 0; i < size; i++) {
+            newArray[i] = elements[(front + i) % elements.length];
+        }
+        elements = newArray;
+        front = 0;
+        rear = size - 1;
+    }
+}
+
+class MyHashSet<V> {
+    private MyHashMap<V, Object> map;
+    private static final Object PRESENT = new Object();
+    
+    public MyHashSet() {
+        map = new MyHashMap<>();
+    }
+    
+    public boolean add(V element) {
+        return map.put(element, PRESENT) == null;
+    }
+    
+    public boolean contains(V element) {
+        return map.containsKey(element);
+    }
+    
+    public boolean remove(V element) {
+        return map.remove(element) != null;
+    }
+    
+    public int size() {
+        return map.size();
+    }
+    
+    public boolean isEmpty() {
+        return map.isEmpty();
+    }
+}
+
 public class SimpleGraph<V> implements Graph<V> {
-    private Map<V, Map<V, Integer>> adjList;
+    private MyHashMap<V, MyHashMap<V, Integer>> adjList;
     
     public SimpleGraph() {
-        adjList = new HashMap<>();
+        adjList = new MyHashMap<>();
     }
     
     public void addVertex(V v) {
         if (v == null) throw new IllegalArgumentException("Вершина не может быть null");
-        adjList.putIfAbsent(v, new HashMap<>());
+        if (!adjList.containsKey(v)) {  
+        adjList.put(v, new MyHashMap<>());
+    }
     }
     
     public void addEdge(V from, V to, int weight) {
@@ -24,7 +420,9 @@ public class SimpleGraph<V> implements Graph<V> {
     public void removeVertex(V v) {
         if (!adjList.containsKey(v)) return;
         
-        for (V other : adjList.keySet()) {
+        MyArrayList<V> keys = adjList.keySet();
+        for (int i = 0; i < keys.size(); i++) {
+            V other = keys.get(i);
             adjList.get(other).remove(v);
         }
         adjList.remove(v);
@@ -36,13 +434,24 @@ public class SimpleGraph<V> implements Graph<V> {
         adjList.get(to).remove(from);
     }
     
-    public List<V> getAdjacent(V v) {
-        if (!containsVertex(v)) return new ArrayList<>();
-        return new ArrayList<>(adjList.get(v).keySet());
+    public MyArrayList<V> getAdjacent(V v) {
+        if (!containsVertex(v)) return new MyArrayList<>();
+        
+        MyArrayList<V> result = new MyArrayList<>();
+        MyArrayList<V> keys = adjList.get(v).keySet();
+        for (int i = 0; i < keys.size(); i++) {
+            result.add(keys.get(i));
+        }
+        return result;
     }
     
-    public List<V> getVertices() {
-        return new ArrayList<>(adjList.keySet());
+    public MyArrayList<V> getVertices() {
+        MyArrayList<V> result = new MyArrayList<>();
+        MyArrayList<V> keys = adjList.keySet();
+        for (int i = 0; i < keys.size(); i++) {
+            result.add(keys.get(i));
+        }
+        return result;
     }
     
     public boolean containsVertex(V v) {
@@ -67,8 +476,8 @@ public class SimpleGraph<V> implements Graph<V> {
         
         System.out.print("DFS обход из " + start + ": ");
         
-        Set<V> visited = new HashSet<>();
-        Stack<V> stack = new Stack<>();
+        MyHashSet<V> visited = new MyHashSet<>();
+        MyStack<V> stack = new MyStack<>();
         
         stack.push(start);
         
@@ -80,7 +489,7 @@ public class SimpleGraph<V> implements Graph<V> {
                 visited.add(current);
                 
                 // Добавляем соседей в стек
-                List<V> neighbors = getAdjacent(current);
+                MyArrayList<V> neighbors = getAdjacent(current);
                 for (int i = neighbors.size() - 1; i >= 0; i--) {
                     V neighbor = neighbors.get(i);
                     if (!visited.contains(neighbor)) {
@@ -101,8 +510,8 @@ public class SimpleGraph<V> implements Graph<V> {
         
         System.out.print("BFS обход из " + start + ": ");
         
-        Set<V> visited = new HashSet<>();
-        Queue<V> queue = new LinkedList<>();
+        MyHashSet<V> visited = new MyHashSet<>();
+        MyQueue<V> queue = new MyQueue<>();
         
         visited.add(start);
         queue.offer(start);
@@ -111,7 +520,9 @@ public class SimpleGraph<V> implements Graph<V> {
             V current = queue.poll();
             System.out.print(current + " ");
             
-            for (V neighbor : getAdjacent(current)) {
+            MyArrayList<V> neighbors = getAdjacent(current);
+            for (int i = 0; i < neighbors.size(); i++) {
+                V neighbor = neighbors.get(i);
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     queue.offer(neighbor);
@@ -122,12 +533,12 @@ public class SimpleGraph<V> implements Graph<V> {
     }
     
     // Метод для получения результата DFS
-    public List<V> getDFSResult(V start) {
-        List<V> result = new ArrayList<>();
+    public MyArrayList<V> getDFSResult(V start) {
+        MyArrayList<V> result = new MyArrayList<>();
         if (!containsVertex(start)) return result;
         
-        Set<V> visited = new HashSet<>();
-        Stack<V> stack = new Stack<>();
+        MyHashSet<V> visited = new MyHashSet<>();
+        MyStack<V> stack = new MyStack<>();
         
         stack.push(start);
         
@@ -138,7 +549,7 @@ public class SimpleGraph<V> implements Graph<V> {
                 result.add(current);
                 visited.add(current);
                 
-                List<V> neighbors = getAdjacent(current);
+                MyArrayList<V> neighbors = getAdjacent(current);
                 for (int i = neighbors.size() - 1; i >= 0; i--) {
                     V neighbor = neighbors.get(i);
                     if (!visited.contains(neighbor)) {
@@ -151,12 +562,12 @@ public class SimpleGraph<V> implements Graph<V> {
     }
     
     // Метод для получения результата BFS
-    public List<V> getBFSResult(V start) {
-        List<V> result = new ArrayList<>();
+    public MyArrayList<V> getBFSResult(V start) {
+        MyArrayList<V> result = new MyArrayList<>();
         if (!containsVertex(start)) return result;
         
-        Set<V> visited = new HashSet<>();
-        Queue<V> queue = new LinkedList<>();
+        MyHashSet<V> visited = new MyHashSet<>();
+        MyQueue<V> queue = new MyQueue<>();
         
         visited.add(start);
         queue.offer(start);
@@ -165,7 +576,9 @@ public class SimpleGraph<V> implements Graph<V> {
             V current = queue.poll();
             result.add(current);
             
-            for (V neighbor : getAdjacent(current)) {
+            MyArrayList<V> neighbors = getAdjacent(current);
+            for (int i = 0; i < neighbors.size(); i++) {
+                V neighbor = neighbors.get(i);
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     queue.offer(neighbor);
@@ -175,9 +588,11 @@ public class SimpleGraph<V> implements Graph<V> {
         return result;
     }
     
-    public Map<V, Integer> dijkstra(V start) {
-        Map<V, Integer> distances = new HashMap<>();
-        for (V vertex : getVertices()) {
+    public MyHashMap<V, Integer> dijkstra(V start) {
+        MyHashMap<V, Integer> distances = new MyHashMap<>();
+        MyArrayList<V> vertices = getVertices();
+        for (int i = 0; i < vertices.size(); i++) {
+            V vertex = vertices.get(i);
             distances.put(vertex, Integer.MAX_VALUE);
         }
         distances.put(start, 0);
@@ -186,7 +601,7 @@ public class SimpleGraph<V> implements Graph<V> {
     
     // Алгоритм Флойда-Уоршелла
     public int[][] floydWarshall() {
-        List<V> vertices = getVertices();
+        MyArrayList<V> vertices = getVertices();
         int n = vertices.size();
         int[][] dist = new int[n][n];
         
@@ -220,34 +635,41 @@ public class SimpleGraph<V> implements Graph<V> {
     }
     
     // Алгоритм Беллмана-Форда
-    public Map<V, Integer> bellmanFord(V start) {
-        Map<V, Integer> distances = new HashMap<>();
-        List<Edge<V>> edges = getAllEdges();
+    public MyHashMap<V, Integer> bellmanFord(V start) {
+        MyHashMap<V, Integer> distances = new MyHashMap<>();
+        MyArrayList<Edge<V>> edges = getAllEdges();
         
         // Инициализация расстояний
-        for (V vertex : getVertices()) {
+        MyArrayList<V> vertices = getVertices();
+        for (int i = 0; i < vertices.size(); i++) {
+            V vertex = vertices.get(i);
             distances.put(vertex, Integer.MAX_VALUE);
         }
         distances.put(start, 0);
         
         // Релаксация ребер
         for (int i = 0; i < getVertexCount() - 1; i++) {
-            for (Edge<V> edge : edges) {
-                if (distances.get(edge.from) != Integer.MAX_VALUE && 
-                    distances.get(edge.from) + edge.weight < distances.get(edge.to)) {
-                    distances.put(edge.to, distances.get(edge.from) + edge.weight);
-                }
+        for (int j = 0; j < edges.size(); j++) {
+            Edge<V> edge = edges.get(j);
+            if (distances.get(edge.from) != Integer.MAX_VALUE && 
+                distances.get(edge.from) + edge.weight < distances.get(edge.to)) {
+                distances.put(edge.to, distances.get(edge.from) + edge.weight);
             }
         }
+    }
         
         return distances;
     }
     
     // Вспомогательный метод для получения всех ребер
-    private List<Edge<V>> getAllEdges() {
-        List<Edge<V>> edges = new ArrayList<>();
-        for (V from : getVertices()) {
-            for (V to : getAdjacent(from)) {
+    private MyArrayList<Edge<V>> getAllEdges() {
+        MyArrayList<Edge<V>> edges = new MyArrayList<>();
+        MyArrayList<V> vertices = getVertices();
+        for (int i = 0; i < vertices.size(); i++) {
+            V from = vertices.get(i);
+            MyArrayList<V> adjacent = getAdjacent(from);
+            for (int j = 0; j < adjacent.size(); j++) {
+                V to = adjacent.get(j);
                 edges.add(new Edge<>(from, to, getEdgeWeight(from, to)));
             }
         }
@@ -260,18 +682,22 @@ public class SimpleGraph<V> implements Graph<V> {
     
     public int getEdgeCount() {
         int count = 0;
-        for (Map<V, Integer> edges : adjList.values()) {
+        MyArrayList<V> keys = adjList.keySet();
+        for (int i = 0; i < keys.size(); i++) {
+            V vertex = keys.get(i);
+            MyHashMap<V, Integer> edges = adjList.get(vertex);
             count += edges.size();
         }
         return count / 2;
     }
     
     public String getAdjacencyMatrixString() {
-        List<V> vertices = getVertices();
+        MyArrayList<V> vertices = getVertices();
         StringBuilder sb = new StringBuilder();
         
         sb.append("Матрица смежности:\n  ");
-        for (V vertex : vertices) {
+        for (int i = 0; i < vertices.size(); i++) {
+            V vertex = vertices.get(i);
             sb.append(vertex).append(" ");
         }
         sb.append("\n");
@@ -292,11 +718,12 @@ public class SimpleGraph<V> implements Graph<V> {
     
     public String getFloydWarshallString() {
         int[][] dist = floydWarshall();
-        List<V> vertices = getVertices();
+        MyArrayList<V> vertices = getVertices();
         StringBuilder sb = new StringBuilder();
         
         sb.append("Матрица кратчайших путей (Флойд-Уоршелл):\n  ");
-        for (V vertex : vertices) {
+        for (int i = 0; i < vertices.size(); i++) {
+            V vertex = vertices.get(i);
             sb.append(vertex).append(" ");
         }
         sb.append("\n");
@@ -317,19 +744,20 @@ public class SimpleGraph<V> implements Graph<V> {
     }
     
     public String getBellmanFordString(V start) {
-        Map<V, Integer> distances = bellmanFord(start);
+        MyHashMap<V, Integer> distances = bellmanFord(start);
         StringBuilder sb = new StringBuilder();
         
         sb.append("Кратчайшие пути (Беллман-Форд) из ").append(start).append(":\n");
-        for (Map.Entry<V, Integer> entry : distances.entrySet()) {
-            sb.append("До ").append(entry.getKey()).append(": ");
-            if (entry.getValue() == Integer.MAX_VALUE) {
+        MyArrayList<MyHashMap.Entry<V, Integer>> entries = distances.entrySet(); 
+        for (int i = 0; i < entries.size(); i++) {
+            MyHashMap.Entry<V, Integer> entry = entries.get(i);
+            sb.append("До ").append(entry.key).append(": ");  
+            if (entry.value == Integer.MAX_VALUE) {
                 sb.append("INF\n");
             } else {
-                sb.append(entry.getValue()).append("\n");
+                sb.append(entry.value).append("\n");
             }
         }
-        
         return sb.toString();
     }
     

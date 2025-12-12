@@ -1,5 +1,3 @@
-import java.util.Arrays;
-
 class MyArrayList<V> {
     private Object[] elements; 
 
@@ -84,7 +82,7 @@ class MyArrayList<V> {
             throw new IndexOutOfBoundsException("Такого элекмента не существует");
         }
 
-        for (int i = index; i < size; i++) {
+        for (int i = index; i < size-1; i++) {
             elements[i] = elements[i+1];
         }
         elements[size - 1] = null;
@@ -396,8 +394,14 @@ class MyHashSet<V> {
 
 public class SimpleGraph<V> implements Graph<V> {
     private MyHashMap<V, MyHashMap<V, Integer>> adjList;
-    
+    private boolean directed;
+
     public SimpleGraph() {
+        this(false); 
+    }
+
+    public SimpleGraph(boolean directed) {   
+        this.directed = directed;
         adjList = new MyHashMap<>();
     }
     
@@ -414,7 +418,9 @@ public class SimpleGraph<V> implements Graph<V> {
         if (!adjList.containsKey(to)) addVertex(to);
         
         adjList.get(from).put(to, weight);
-        adjList.get(to).put(from, weight);
+        if (!directed) {   
+            adjList.get(to).put(from, weight);
+        }
     }
     
     public void removeVertex(V v) {
@@ -431,7 +437,9 @@ public class SimpleGraph<V> implements Graph<V> {
     public void removeEdge(V from, V to) {
         if (!containsVertex(from) || !containsVertex(to)) return;
         adjList.get(from).remove(to);
-        adjList.get(to).remove(from);
+        if (!directed) {  
+            adjList.get(to).remove(from);
+        }
     }
     
     public MyArrayList<V> getAdjacent(V v) {
@@ -487,8 +495,7 @@ public class SimpleGraph<V> implements Graph<V> {
             if (!visited.contains(current)) {
                 System.out.print(current + " ");
                 visited.add(current);
-                
-                // Добавляем соседей в стек
+            
                 MyArrayList<V> neighbors = getAdjacent(current);
                 for (int i = neighbors.size() - 1; i >= 0; i--) {
                     V neighbor = neighbors.get(i);
@@ -607,7 +614,9 @@ public class SimpleGraph<V> implements Graph<V> {
         
         // Инициализация матрицы
         for (int i = 0; i < n; i++) {
-            Arrays.fill(dist[i], 99999);
+            for (int j = 0; j < n; j++) {
+                dist[i][j] = 99999;  // или лучше использовать константу
+            }
             dist[i][i] = 0;
             
             for (int j = 0; j < n; j++) {
@@ -688,7 +697,11 @@ public class SimpleGraph<V> implements Graph<V> {
             MyHashMap<V, Integer> edges = adjList.get(vertex);
             count += edges.size();
         }
-        return count / 2;
+        if (!directed) {  
+            return count / 2;
+        } else {
+            return count; 
+        }
     }
     
     public String getAdjacencyMatrixString() {
@@ -771,5 +784,9 @@ public class SimpleGraph<V> implements Graph<V> {
             this.to = to;
             this.weight = weight;
         }
+    }
+
+    public boolean isDirected() {
+        return directed;
     }
 }

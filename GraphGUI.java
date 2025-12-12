@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class GraphGUI extends JFrame {
     private SimpleGraph<String> graph;
@@ -17,7 +16,19 @@ public class GraphGUI extends JFrame {
     private final Color ACCENT_COLOR = new Color(0, 122, 204);
     
     public GraphGUI() {
-        graph = new SimpleGraph<>();
+        String[] options = {"Неориентированный", "Ориентированный"};
+        int choice = JOptionPane.showOptionDialog(this,
+            "Выберите тип графа:",
+            "Тип графа",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
+        
+        boolean directed = (choice == 1);
+        graph = new SimpleGraph<>(directed);
+        
         setupInterface();
         setupDarkTheme();
     }
@@ -306,8 +317,15 @@ public class GraphGUI extends JFrame {
         String start = JOptionPane.showInputDialog(this, "Введите стартовую вершину для DFS:");
         if (start != null && !start.trim().isEmpty()) {
             try {
-                List<String> result = graph.getDFSResult(start.trim());
-                outputArea.append("DFS обход из " + start + ": " + String.join(" -> ", result) + "\n");
+                MyArrayList<String> result = graph.getDFSResult(start.trim());
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < result.size(); i++) {
+                    sb.append(result.get(i));
+                    if (i < result.size() - 1) {
+                        sb.append(" -> ");
+                    }
+                }
+                outputArea.append("DFS обход из " + start + ": " + sb.toString() + "\n");
             } catch (Exception e) {
                 showError("Ошибка при выполнении DFS");
             }
@@ -318,8 +336,15 @@ public class GraphGUI extends JFrame {
         String start = JOptionPane.showInputDialog(this, "Введите стартовую вершину для BFS:");
         if (start != null && !start.trim().isEmpty()) {
             try {
-                List<String> result = graph.getBFSResult(start.trim());
-                outputArea.append("BFS обход из " + start + ": " + String.join(" -> ", result) + "\n");
+                MyArrayList<String> result = graph.getBFSResult(start.trim()); 
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < result.size(); i++) {
+                    sb.append(result.get(i));
+                    if (i < result.size() - 1) {
+                        sb.append(" -> ");
+                    }
+                }
+                outputArea.append("BFS обход из " + start + ": " + sb.toString() + "\n");
             } catch (Exception e) {
                 showError("Ошибка при выполнении BFS");
             }
@@ -328,11 +353,14 @@ public class GraphGUI extends JFrame {
     
     private void showGraphInfo() {
         outputArea.append("\n=== Информация о графе ===\n");
+        outputArea.append("Тип: " + (graph.isDirected() ? "Ориентированный" : "Неориентированный") + "\n");
         outputArea.append("Вершин: " + graph.getVertexCount() + "\n");
         outputArea.append("Ребер: " + graph.getEdgeCount() + "\n");
         outputArea.append("Вершины: " + graph.getVertices() + "\n");
         
-        for (String vertex : graph.getVertices()) {
+        MyArrayList<String> vertices = graph.getVertices();
+        for (int i = 0; i < vertices.size(); i++) {
+            String vertex = vertices.get(i);
             outputArea.append("Смежные с " + vertex + ": " + graph.getAdjacent(vertex) + "\n");
         }
         outputArea.append("==========================\n\n");
